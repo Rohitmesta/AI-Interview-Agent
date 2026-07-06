@@ -410,8 +410,17 @@ Potential enhancements include:
 Include screenshots of the following pages:
 
 1. Home Page
+/frontend/screenshots/HomePage.png
+
 2. Interview Page
+/frontend/screenshots/InterviewPage.png
+
 3. Result Page
+/frontend/screenshots/ResultPage.png
+/frontend/screenshots/ResultPage1.png
+/frontend/screenshots/ResultPage2.png
+
+
 
 ---
 
