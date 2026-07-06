@@ -4,9 +4,7 @@ import api from "../api/api";
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 
-/* ----------------------------------------------------------------------
- * Score helpers — pure presentation, no business logic
- * ------------------------------------------------------------------- */
+ 
 
 function scoreTheme(score: number) {
   if (score >= 8) {
@@ -36,7 +34,7 @@ function scoreTheme(score: number) {
   };
 }
 
-/** Human-readable performance bucket for a given score out of `max`. Display-only. */
+ 
 function scoreCategory(score: number, max = 10) {
   const pct = (score / max) * 100;
   if (pct >= 80) return { label: "Excellent", className: "text-emerald-700 bg-emerald-50 border-emerald-200" };
@@ -44,7 +42,7 @@ function scoreCategory(score: number, max = 10) {
   return { label: "Needs Improvement", className: "text-rose-700 bg-rose-50 border-rose-200" };
 }
 
-/** Recommendation badge derived from the average score. Display-only, does not affect stored data. */
+ 
 function recommendation(score: number, max = 10) {
   const pct = (score / max) * 100;
   if (pct >= 80) {
@@ -87,7 +85,7 @@ function ScoreBar({ score, max = 10 }: { score: number; max?: number }) {
   );
 }
 
-/** Circular gauge for the headline average score. Pure SVG, no deps. */
+ 
 function ScoreGauge({ score, max = 10 }: { score: number; max?: number }) {
   const theme = scoreTheme(score);
   const pct = Math.max(0, Math.min(1, score / max));
@@ -120,9 +118,7 @@ function ScoreGauge({ score, max = 10 }: { score: number; max?: number }) {
   );
 }
 
-/* ----------------------------------------------------------------------
- * Icons (inline, no icon library)
- * ------------------------------------------------------------------- */
+ 
 
 function Icon({ name }: { name: "check" | "flag" | "x" | "print" | "download" | "users" | "chart" | "badge" }) {
   const common = { width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -175,9 +171,7 @@ function Icon({ name }: { name: "check" | "flag" | "x" | "print" | "download" | 
   }
 }
 
-/* ----------------------------------------------------------------------
- * Performance summary cards
- * ------------------------------------------------------------------- */
+ 
 
 function StatCard({
   icon,
@@ -204,9 +198,7 @@ function StatCard({
   );
 }
 
-/* ----------------------------------------------------------------------
- * Loading skeleton
- * ------------------------------------------------------------------- */
+ 
 
 function ResultSkeleton() {
   return (
@@ -235,9 +227,7 @@ function ResultSkeleton() {
   );
 }
 
-/* ----------------------------------------------------------------------
- * Result page
- * ------------------------------------------------------------------- */
+ 
 
 function Result() {
   const { sessionId } = useParams();
@@ -505,7 +495,7 @@ function Result() {
             })}
           </div>
         ) : (
-          /* Empty state: no per-question results returned */
+           
           <div className="mb-10 flex flex-col items-center rounded-2xl border border-dashed border-slate-300 bg-slate-50/60 p-12 text-center">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-400 shadow-sm">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
