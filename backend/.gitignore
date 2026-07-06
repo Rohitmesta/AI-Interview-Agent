@@ -1,4 +1,24 @@
+# Environment
+.env
+.env.*
+
+# Python
 venv/
 __pycache__/
-*.pyc
-.env
+*.py[cod]
+*.pyo
+
+# Database
+interview_agent.db
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# OS Files
+.DS_Store
