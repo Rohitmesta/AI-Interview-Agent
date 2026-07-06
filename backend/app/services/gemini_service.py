@@ -7,6 +7,33 @@ from app.core.config import settings
 client = genai.Client(api_key=settings.gemini_api_key)
 
 
+def _generate_with_retry(prompt: str):
+    """
+    Calls Gemini with retry logic.
+    Raises the original exception if all retries fail.
+    """
+
+    last_error = None
+
+    for attempt in range(3):
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt,
+            )
+
+            return response
+
+        except Exception as e:
+            last_error = e
+            print(f"[Attempt {attempt + 1}] Gemini Error: {e}")
+
+            if attempt < 2:
+                time.sleep(2)
+
+    raise last_error
+
+
 def generate_questions(role: str):
     prompt = f"""
 You are an expert technical interviewer.
@@ -20,22 +47,12 @@ One question per line.
 No numbering.
 """
 
-    for _ in range(3):
-        try:
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt,
-            )
-            break
-        except Exception:
-            time.sleep(2)
-    else:
-        raise Exception("Gemini is temporarily unavailable. Please try again.")
+    response = _generate_with_retry(prompt)
 
     questions = [
-        q.strip()
-        for q in response.text.split("\n")
-        if q.strip()
+        question.strip()
+        for question in response.text.split("\n")
+        if question.strip()
     ]
 
     return questions[:5]
@@ -59,17 +76,7 @@ Score: <0-10>
 Feedback: <short constructive feedback>
 """
 
-    for _ in range(3):
-        try:
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt,
-            )
-            break
-        except Exception:
-            time.sleep(2)
-    else:
-        raise Exception("Gemini is temporarily unavailable. Please try again.")
+    response = _generate_with_retry(prompt)
 
     return response.text
 
@@ -131,16 +138,6 @@ Overall Summary:
 ...
 """
 
-    for _ in range(3):
-        try:
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt,
-            )
-            break
-        except Exception:
-            time.sleep(2)
-    else:
-        raise Exception("Gemini is temporarily unavailable. Please try again.")
+    response = _generate_with_retry(prompt)
 
     return response.text

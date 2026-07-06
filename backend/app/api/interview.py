@@ -18,7 +18,10 @@ from app.services.gemini_service import (
     evaluate_interview,
 )
 
-router = APIRouter(prefix="/api/interview", tags=["Interview"])
+router = APIRouter(
+    prefix="/api/interview",
+    tags=["Interview"],
+)
 
 
 @router.post("/start")
@@ -35,18 +38,42 @@ def start_interview(
     db.commit()
     db.refresh(session)
 
-    questions = generate_questions(interview.role)
+    try:
+        questions = generate_questions(interview.role)
+
+    except Exception as e:
+        message = str(e)
+
+        if (
+            "RESOURCE_EXHAUSTED" in message
+            or "429" in message
+            or "quota" in message.lower()
+        ):
+            raise HTTPException(
+                status_code=429,
+                detail="Gemini API quota exceeded. Please wait a minute and try again.",
+            )
+
+        raise HTTPException(
+            status_code=500,
+            detail=message,
+        )
 
     saved_questions = []
 
-    for index, question in enumerate(questions[:5], start=1):
+    for index, question in enumerate(
+        questions[:5],
+        start=1,
+    ):
         q = InterviewQuestion(
             session_id=session.id,
             question=question,
             order=index,
         )
+
         db.add(q)
         db.flush()
+
         saved_questions.append(q)
 
     db.commit()
@@ -71,7 +98,10 @@ def submit_answer(
     request: AnswerRequest,
     db: Session = Depends(get_db),
 ):
-    question = db.get(InterviewQuestion, request.question_id)
+    question = db.get(
+        InterviewQuestion,
+        request.question_id,
+    )
 
     if not question:
         raise HTTPException(
@@ -79,19 +109,47 @@ def submit_answer(
             detail="Question not found",
         )
 
-    result = evaluate_answer(
-        question.question,
-        request.answer,
+    try:
+        result = evaluate_answer(
+            question.question,
+            request.answer,
+        )
+
+    except Exception as e:
+        message = str(e)
+
+        if (
+            "RESOURCE_EXHAUSTED" in message
+            or "429" in message
+            or "quota" in message.lower()
+        ):
+            raise HTTPException(
+                status_code=429,
+                detail="Gemini API quota exceeded. Please wait a minute and try again.",
+            )
+
+        raise HTTPException(
+            status_code=500,
+            detail=message,
+        )
+
+    score_match = re.search(
+        r"Score:\s*(\d+)",
+        result,
     )
 
-    score_match = re.search(r"Score:\s*(\d+)", result)
     feedback_match = re.search(
         r"Feedback:\s*(.*)",
         result,
         re.DOTALL,
     )
 
-    score = int(score_match.group(1)) if score_match else 0
+    score = (
+        int(score_match.group(1))
+        if score_match
+        else 0
+    )
+
     feedback = (
         feedback_match.group(1).strip()
         if feedback_match
@@ -112,14 +170,15 @@ def submit_answer(
         "score": score,
         "feedback": feedback,
     }
-
-
 @router.get("/result/{session_id}")
 def interview_result(
     session_id: int,
     db: Session = Depends(get_db),
 ):
-    session = db.get(InterviewSession, session_id)
+    session = db.get(
+        InterviewSession,
+        session_id,
+    )
 
     if not session:
         raise HTTPException(
@@ -131,7 +190,9 @@ def interview_result(
     total_score = 0
 
     for question in session.questions:
+
         if question.answers:
+
             answer = question.answers[-1]
 
             total_score += answer.score
@@ -153,17 +214,43 @@ def interview_result(
 
     session.final_score = round(average_score)
     session.status = "completed"
-    overall_evaluation = evaluate_interview(results)
+
+    try:
+        overall_evaluation = evaluate_interview(
+            results
+        )
+
+    except Exception as e:
+        message = str(e)
+
+        if (
+            "RESOURCE_EXHAUSTED" in message
+            or "429" in message
+            or "quota" in message.lower()
+            or "Quota exceeded" in message
+        ):
+            raise HTTPException(
+                status_code=429,
+                detail="Gemini API quota exceeded. Please wait a minute and try again.",
+            )
+
+        raise HTTPException(
+            status_code=500,
+            detail=message,
+        )
 
     db.commit()
 
     return {
-    "session_id": session.id,
-    "candidate_name": session.candidate_name,
-    "role": session.role,
-    "status": session.status,
-    "average_score": round(average_score, 2),
-    "questions_answered": len(results),
-    "results": results,
-    "overall_evaluation": overall_evaluation,
-}
+        "session_id": session.id,
+        "candidate_name": session.candidate_name,
+        "role": session.role,
+        "status": session.status,
+        "average_score": round(
+            average_score,
+            2,
+        ),
+        "questions_answered": len(results),
+        "results": results,
+        "overall_evaluation": overall_evaluation,
+    }
