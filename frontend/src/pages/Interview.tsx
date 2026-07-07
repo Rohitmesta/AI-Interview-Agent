@@ -111,7 +111,7 @@ function Interview() {
       setResult(response.data);
     } catch (err) {
       console.error(err);
-      setSubmitError("Failed to submit answer. Please try again.");
+      setSubmitError("AI Service Temporarily Unavailable. the Gemini API has reached its request quota.Please try again later");
     }
 
     setLoading(false);
