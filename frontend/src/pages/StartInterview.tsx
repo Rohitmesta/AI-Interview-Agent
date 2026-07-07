@@ -38,7 +38,7 @@ function StartInterview() {
     );
   } else {
     setError(
-      "Failed to start interview. Please check your connection and try again."
+      "AI Service Unavailable. The AI service has reached its request limit. Please wait a minute and try again."
     );
   }
 }finally {
